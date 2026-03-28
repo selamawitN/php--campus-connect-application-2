@@ -1,1 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Announcement</title>
+</head>
+<body>
+    <h2>Create Announcement</h2>
 
+    <form action="create_announcement.php" method="POST">
+        <input type="text" name="title" placeholder="Announcement Title" required><br><br>
+        <textarea name="message" placeholder="Write announcement message" required></textarea><br><br>
+        <input type="text" name="created_by" placeholder="Posted By" required><br><br>
+        <button type="submit">Post Announcement</button>
+    </form>
+</body>
+</html>
