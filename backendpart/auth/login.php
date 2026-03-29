@@ -53,6 +53,7 @@ try {
     $_SESSION['user_fullname'] = $user['fullname'];
     $_SESSION['user_role'] = $user['role'];
     $_SESSION['user_student_id'] = $user['student_id'];
+    $_SESSION['login_time'] = time();
     
     
     if ($remember_me) {
