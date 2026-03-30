@@ -14,3 +14,23 @@ CREATE TABLE announcements (
     created_by VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS internships (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    company VARCHAR(100) NOT NULL,
+    description TEXT,
+    location VARCHAR(200),
+    stipend VARCHAR(100),
+    stipend_type ENUM('paid', 'unpaid') DEFAULT 'unpaid',
+    duration VARCHAR(50),
+    deadline DATE,
+    requirements TEXT,
+    year_requirement VARCHAR(50) COMMENT 'e.g., "3,4,5" or "4,5"',
+    work_type ENUM('remote', 'on-site', 'hybrid') DEFAULT 'on-site',
+    posted_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
