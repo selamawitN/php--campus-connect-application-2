@@ -15,12 +15,11 @@ if(isset($_POST['group_id'], $_POST['user_name'])) {
     }
 }
 
-// Fetch groups user might leave
-$groups = $conn->query("SELECT g.group_id, g.group_name, COUNT(gm.user_name) AS members
-    FROM groups g
-    LEFT JOIN group_members gm ON g.group_id = gm.group_id
-    GROUP BY g.group_id
-");
+// Fetch groups with member count
+$groups = $conn->query("SELECT g.group_id, g.group_name, COUNT(gm.user_name) AS members, g.max_members
+                        FROM groups g
+                        LEFT JOIN group_members gm ON g.group_id = gm.group_id
+                        GROUP BY g.group_id");
 ?>
 
 <h2>Leave Group</h2>
@@ -29,7 +28,8 @@ $groups = $conn->query("SELECT g.group_id, g.group_name, COUNT(gm.user_name) AS 
     <select name="group_id">
         <?php while($row = $groups->fetch_assoc()): ?>
             <option value="<?= $row['group_id'] ?>">
-                <?= $row['group_name'] ?> (<?= $row['members'] ?> members)
+                <?= htmlspecialchars($row['group_name']) ?> 
+                (<?= $row['members'] ?>/<?= $row['max_members'] ?> members)
             </option>
         <?php endwhile; ?>
     </select>
