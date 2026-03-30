@@ -1,72 +1,34 @@
-<!DOCTYPE html>
-<html>
-<body>
-
-<h2>Leave Study Group</h2>
-
 <?php
-$nameErr = "";
-$studentName = "";
-$selectedGroup = "";
+include 'config/db.php';
+session_start();
 
-// function (from slides)
-function test_input($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data);
-    return $data;
-}
+$user_id = $_SESSION['user_id'] ?? 1;
 
-$groups = array("Math Group", "Programming Group", "Physics Group");
+if(isset($_POST['group_id'])) {
+    $group_id = (int)$_POST['group_id'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    if (empty($_POST["student_name"])) {
-        $nameErr = "Name is required";
+    // Check if user joined the group
+    $check = $conn->query("SELECT * FROM group_members WHERE user_id=$user_id AND group_id=$group_id");
+    if($check->num_rows > 0){
+        // Leave the group
+        $conn->query("DELETE FROM group_members WHERE user_id=$user_id AND group_id=$group_id");
+        echo "You have left the group.";
     } else {
-        $studentName = test_input($_POST["student_name"]);
-
-        // only letters and spaces
-        if (!preg_match("/^[a-zA-Z ]*$/", $studentName)) {
-            $nameErr = "Only letters allowed";
-        }
-    }
-
-    $selectedGroup = test_input($_POST["group"]);
-
-    if ($nameErr == "") {
-        echo "<h3>You have successfully left the group!</h3>";
-        echo "Name: $studentName <br>";
-        echo "Group: $selectedGroup <br>";
+        echo "You are not a member of this group.";
     }
 }
+
+// Show all groups user joined
+$result = $conn->query("SELECT g.group_id, g.group_name 
+                        FROM groups g
+                        JOIN group_members gm ON g.group_id = gm.group_id
+                        WHERE gm.user_id=$user_id");
 ?>
-
-<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-
-Your Name:
-<input type="text" name="student_name" value="<?php echo $studentName;?>">
-<span style="color:red;">* <?php echo $nameErr;?></span>
-<br><br>
-
-Select Group:
-<select name="group">
-<?php
-foreach ($groups as $g) {
-    if ($g == $selectedGroup) {
-        echo "<option selected>$g</option>";
-    } else {
-        echo "<option>$g</option>";
-    }
-}
-?>
-</select>
-
-<br><br>
-
-<input type="submit" value="Leave Group">
-
+<form method="POST">
+    <select name="group_id">
+        <?php while($row = $result->fetch_assoc()): ?>
+            <option value="<?= $row['group_id'] ?>"><?= $row['group_name'] ?></option>
+        <?php endwhile; ?>
+    </select>
+    <button type="submit">Leave Group</button>
 </form>
-
-</body>
-</html>
