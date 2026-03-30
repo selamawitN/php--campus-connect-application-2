@@ -1,43 +1,69 @@
-
 <?php
-require_once '../config/db.php';
-require_once '../config/constants.php';
 
+
+require_once '../config/db.php'; 
+
+session_start();
 header('Content-Type: application/json');
 
+// Function to generate CSRF token
+function generateCSRFToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+// Function to verify CSRF token
+function verifyCSRFToken($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+// Generate CSRF token for response
+$csrf_token = generateCSRFToken();
+
+// Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    Response::error('Method not allowed', 405);
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
 }
 
-if (!isset($_POST['csrf_token']) || !Validation::verifyCSRFToken($_POST['csrf_token'])) {
-    Response::error('Invalid security token', 403);
+// Verify CSRF token
+if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid security token']);
+    exit;
 }
 
-$fullname = Validation::sanitize($_POST['fullname'] ?? '');
-$email = Validation::sanitize($_POST['email'] ?? '');
+// Get and sanitize input
+$fullname = trim(htmlspecialchars($_POST['fullname'] ?? ''));
+$email = trim(htmlspecialchars($_POST['email'] ?? ''));
 $password = $_POST['password'] ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';
-$student_id = Validation::sanitize($_POST['student_id'] ?? '');
-$department = Validation::sanitize($_POST['department'] ?? '');
-$year = intval($_POST['year'] ?? 0);
-$phone = Validation::sanitize($_POST['phone'] ?? '');
-$role = Validation::sanitize($_POST['role'] ?? 'student');
+$student_id = trim(htmlspecialchars($_POST['student_id'] ?? ''));
+$department = trim(htmlspecialchars($_POST['department'] ?? ''));
+$year = intval($_POST['year'] ?? 1);
+$phone = trim(htmlspecialchars($_POST['phone'] ?? ''));
 
 $errors = [];
 
+// Validation
 if (empty($fullname)) $errors[] = "Full name is required";
 if (empty($email)) $errors[] = "Email is required";
 if (empty($password)) $errors[] = "Password is required";
 if (empty($student_id)) $errors[] = "Student ID is required";
 
-if (!empty($email) && !Validation::validateEmail($email)) {
+// Email validation
+if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors[] = "Invalid email format";
 }
-if (!empty($email) && !Validation::validateAASTUEmail($email)) {
+if (!empty($email) && !preg_match('/@aastu\.edu\.et$/', $email)) {
     $errors[] = "Please use your AASTU email address (@aastu.edu.et)";
 }
 
-if (!empty($password) && !Validation::validatePassword($password)) {
+// Password validation
+if (!empty($password) && (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password))) {
     $errors[] = "Password must be at least 8 characters and contain uppercase, lowercase, and numbers";
 }
 
@@ -49,68 +75,79 @@ if ($year < 1 || $year > 5) {
     $errors[] = "Invalid year of study (1-5)";
 }
 
-if (!empty($phone) && !Validation::validatePhone($phone)) {
-    $errors[] = "Invalid phone number format (must be 09xxxxxxxx or 07xxxxxxxx)";
-}
-
-if (!in_array($role, [ROLE_STUDENT, ROLE_MENTOR])) {
-    $role = ROLE_STUDENT;
+if (!empty($phone) && !preg_match('/^(09|07)[0-9]{8}$/', $phone)) {
+    $errors[] = "Invalid phone number format (09xxxxxxxx or 07xxxxxxxx)";
 }
 
 if (!empty($errors)) {
-    Response::error('Validation failed', 400, $errors);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Validation failed', 'errors' => $errors]);
+    exit;
 }
 
 try {
-    $db = Database::getInstance()->getConnection();
+    global $conn;
     
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->rowCount() > 0) {
-        Response::error('Email already registered', 409);
+    // Check if email exists
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Email already registered']);
+        exit;
     }
     
-    $stmt = $db->prepare("SELECT id FROM users WHERE student_id = ?");
-    $stmt->execute([$student_id]);
-    if ($stmt->rowCount() > 0) {
-        Response::error('Student ID already registered', 409);
+    // Check if student ID exists
+    $stmt = $conn->prepare("SELECT id FROM users WHERE student_id = ?");
+    $stmt->bind_param("s", $student_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Student ID already registered']);
+        exit;
     }
     
+    // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
-    $sql = "INSERT INTO users (fullname, email, password, student_id, department, year, phone, role, created_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+    // Insert user
+    $sql = "INSERT INTO users (fullname, email, password, student_id, department, year, phone, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
     
-    $stmt = $db->prepare($sql);
-    $result = $stmt->execute([$fullname, $email, $hashed_password, $student_id, $department, $year, $phone, $role]);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssis", $fullname, $email, $hashed_password, $student_id, $department, $year, $phone);
     
-    if ($result) {
-        $user_id = $db->lastInsertId();
+    if ($stmt->execute()) {
+        $user_id = $conn->insert_id;
         
-        if ($role === ROLE_MENTOR) {
-            $mentorSql = "INSERT INTO mentors (user_id, expertise, available_for_mentoring) VALUES (?, ?, 1)";
-            $mentorStmt = $db->prepare($mentorSql);
-            $mentorStmt->execute([$user_id, '']);
-        }
-        
+        // Auto-login after registration
         $_SESSION['user_id'] = $user_id;
         $_SESSION['user_email'] = $email;
         $_SESSION['user_fullname'] = $fullname;
-        $_SESSION['user_role'] = $role;
+        $_SESSION['user_role'] = 'student';
         $_SESSION['user_student_id'] = $student_id;
         
-        Response::success([
-            'id' => $user_id,
-            'fullname' => $fullname,
-            'email' => $email,
-            'student_id' => $student_id,
-            'role' => $role
-        ], 'Registration successful');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Registration successful',
+            'data' => [
+                'id' => $user_id,
+                'fullname' => $fullname,
+                'email' => $email,
+                'student_id' => $student_id
+            ]
+        ]);
     } else {
-        Response::error('Registration failed', 500);
+        throw new Exception("Registration failed");
     }
     
-} catch (PDOException $e) {
-    Response::error('Database error: ' . $e->getMessage(), 500);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()]);
 }
 ?>
