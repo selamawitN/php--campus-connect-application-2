@@ -41,5 +41,45 @@ if (!empty($errors)) {
     exit;
 }
 
-
+try {
+    global $conn;
+    
+    // Get current password
+    $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    
+    if (!password_verify($current_password, $user['password'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Current password is incorrect']);
+        exit;
+    }
+    
+    // Hash new password
+    $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+    
+    // Update password
+    $updateStmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $updateStmt->bind_param("si", $new_hash, $user_id);
+    
+    if ($updateStmt->execute()) {
+        // Clear remember token for security
+        $clearStmt = $conn->prepare("UPDATE users SET remember_token = NULL, remember_token_expiry = NULL WHERE id = ?");
+        $clearStmt->bind_param("i", $user_id);
+        $clearStmt->execute();
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Password changed successfully'
+        ]);
+    } else {
+        throw new Exception("Password change failed");
+    }
+    
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Password change failed: ' . $e->getMessage()]);
+}
 ?>
