@@ -1,3 +1,7 @@
+
+CREATE DATABASE IF NOT EXISTS campus_connect;
+USE campus_connect;
+
 CREATE TABLE mentorship_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     mentee_name VARCHAR(100) NOT NULL,
