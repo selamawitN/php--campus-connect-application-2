@@ -77,15 +77,21 @@ CREATE TABLE IF NOT EXISTS internships (
 );
 
 
-CREATE TABLE materials (
+CREATE TABLE IF NOT EXISTS materials (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    student_name VARCHAR(100),
-    student_id VARCHAR(50),
-    year_level VARCHAR(20),
+    title VARCHAR(200) NOT NULL,
+    full_name VARCHAR(100),
+    year VARCHAR(20),
+    department VARCHAR(100),
     material_type VARCHAR(50),
     file_name VARCHAR(255),
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    file_path VARCHAR(500),
+    file_size INT,
+    downloads_count INT DEFAULT 0,
+    uploaded_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS courses (
     id INT AUTO_INCREMENT PRIMARY KEY,
