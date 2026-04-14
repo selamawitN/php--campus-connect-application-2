@@ -87,3 +87,14 @@ CREATE TABLE materials (
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course_code VARCHAR(20) NOT NULL,
+    course_name VARCHAR(200) NOT NULL,
+    credit_hours INT NOT NULL,
+    prerequisites TEXT,
+    year INT NOT NULL,
+    semester INT NOT NULL,
+    field VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
