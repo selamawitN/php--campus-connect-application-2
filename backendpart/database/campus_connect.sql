@@ -76,3 +76,14 @@ CREATE TABLE IF NOT EXISTS internships (
     FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+
+CREATE TABLE materials (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(100),
+    student_id VARCHAR(50),
+    year_level VARCHAR(20),
+    material_type VARCHAR(50),
+    file_name VARCHAR(255),
+    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
