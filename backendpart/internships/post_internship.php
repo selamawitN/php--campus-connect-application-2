@@ -18,29 +18,43 @@ if (empty($title) || empty($company) || empty($deadline)) {
     exit;
 }
 
-$db = new Database();
-$conn = $db->getConnection();
-
 $sql = "INSERT INTO internships (title, company, description, location, stipend, duration, deadline, requirements, year_requirement, work_type, posted_by, created_at) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
 $stmt = $conn->prepare($sql);
-$result = $stmt->execute([
+if (!$stmt) {
+    echo json_encode(['status' => 'error', 'message' => 'Failed to prepare query']);
+    exit;
+}
+
+$description = $_POST['description'] ?? '';
+$location = $_POST['location'] ?? '';
+$stipend = $_POST['stipend'] ?? '';
+$duration = $_POST['duration'] ?? '';
+$requirements = $_POST['requirements'] ?? '';
+$yearRequirement = $_POST['year_requirement'] ?? '';
+$workType = $_POST['work_type'] ?? '';
+$postedBy = (int) $_SESSION['user_id'];
+
+$stmt->bind_param(
+    "ssssssssssi",
     $title,
     $company,
-    $_POST['description'] ?? '',
-    $_POST['location'] ?? '',
-    $_POST['stipend'] ?? '',
-    $_POST['duration'] ?? '',
+    $description,
+    $location,
+    $stipend,
+    $duration,
     $deadline,
-    $_POST['requirements'] ?? '',
-    $_POST['year_requirement'] ?? '',
-    $_POST['work_type'] ?? '',
-    $_SESSION['user_id']
-]);
+    $requirements,
+    $yearRequirement,
+    $workType,
+    $postedBy
+);
+
+$result = $stmt->execute();
 
 if ($result) {
-    echo json_encode(['status' => 'success', 'message' => 'Internship posted!', 'id' => $conn->lastInsertId()]);
+    echo json_encode(['status' => 'success', 'message' => 'Internship posted!', 'id' => $conn->insert_id]);
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Failed to post']);
 }
