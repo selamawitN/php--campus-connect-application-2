@@ -1,60 +1,47 @@
 <?php
-
 require_once '../config/db.php';
 session_start();
 
 header('Content-Type: application/json');
 
-
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Please login to post internship']);
+    echo json_encode(['status' => 'error', 'message' => 'Please login first']);
     exit;
 }
 
-// Get POST data
 $title = $_POST['title'] ?? '';
 $company = $_POST['company'] ?? '';
-$description = $_POST['description'] ?? '';
-$location = $_POST['location'] ?? '';
-$stipend = $_POST['stipend'] ?? '';
-$duration = $_POST['duration'] ?? '';
 $deadline = $_POST['deadline'] ?? '';
-$requirements = $_POST['requirements'] ?? '';
-$year_requirement = $_POST['year_requirement'] ?? '';
-$work_type = $_POST['work_type'] ?? '';
-
 
 if (empty($title) || empty($company) || empty($deadline)) {
-    echo json_encode(['status' => 'error', 'message' => 'Title, company, and deadline are required']);
+    echo json_encode(['status' => 'error', 'message' => 'Title, company and deadline required']);
     exit;
 }
 
-$database = new Database();
-$db = $database->getConnection();
+$db = new Database();
+$conn = $db->getConnection();
 
-try {
-    $stmt = $db->prepare("INSERT INTO internships 
-                          (title, company, description, location, stipend, duration, 
-                           deadline, requirements, year_requirement, work_type, posted_by, created_at) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    
-    $result = $stmt->execute([
-        $title, $company, $description, $location, $stipend, $duration,
-        $deadline, $requirements, $year_requirement, $work_type, $_SESSION['user_id']
-    ]);
-    
-    if ($result) {
-        $internship_id = $db->lastInsertId();
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Internship posted successfully',
-            'internship_id' => $internship_id
-        ]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Failed to post internship']);
-    }
-    
-} catch(PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+$sql = "INSERT INTO internships (title, company, description, location, stipend, duration, deadline, requirements, year_requirement, work_type, posted_by, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+$stmt = $conn->prepare($sql);
+$result = $stmt->execute([
+    $title,
+    $company,
+    $_POST['description'] ?? '',
+    $_POST['location'] ?? '',
+    $_POST['stipend'] ?? '',
+    $_POST['duration'] ?? '',
+    $deadline,
+    $_POST['requirements'] ?? '',
+    $_POST['year_requirement'] ?? '',
+    $_POST['work_type'] ?? '',
+    $_SESSION['user_id']
+]);
+
+if ($result) {
+    echo json_encode(['status' => 'success', 'message' => 'Internship posted!', 'id' => $conn->lastInsertId()]);
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'Failed to post']);
 }
 ?>
