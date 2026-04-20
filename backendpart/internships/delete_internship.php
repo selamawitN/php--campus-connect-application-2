@@ -8,8 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $id = $_GET['id'] ?? 0;
-$db = new Database();
-$conn = $db->getConnection();
 $stmt = $conn->prepare("DELETE FROM internships WHERE id=? AND posted_by=?");
 $stmt->execute([$id, $_SESSION['user_id']]);
 
