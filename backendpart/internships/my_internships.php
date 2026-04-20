@@ -7,11 +7,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$db = new Database();
-$conn = $db->getConnection();
-$stmt = $conn->prepare("SELECT * FROM internships WHERE posted_by=? ORDER BY id DESC");
-$stmt->execute([$_SESSION['user_id']]);
-$list = $stmt->fetchAll();
+
+$userId = (int) $_SESSION['user_id'];
+$sql = "SELECT * FROM internships WHERE posted_by=$userId ORDER BY id DESC";
+$result = $conn->query($sql);
+$list = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 $msg = $_GET['msg'] ?? '';
 ?>
 <!DOCTYPE html>
