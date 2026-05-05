@@ -1,6 +1,6 @@
 <?php
 session_start();
-header('conternt-Type: application/json');
+header('Conternt-Type: application/json');
 function gnerateCSRFToken(){
   if(empty($_SESSSION['csrf_token']) ){
     $_SESSION[csrf_token'] = bin2hex(randin_bytes(32));
