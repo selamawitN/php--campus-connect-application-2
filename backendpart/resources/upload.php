@@ -1,7 +1,7 @@
 <?php
 include "db.php";
 
-$name = $_POST['name'];
+$name = $_post['name'];
 $student_id = $_POST['student_id'];
 $year = $_POST['year'];
 $type = $_POST['type'];
