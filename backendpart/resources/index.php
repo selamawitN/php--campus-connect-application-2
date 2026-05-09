@@ -14,7 +14,8 @@
 
     Student ID: <br>
     <input type="text" name="student_id" required><br><br>
-
+subject ID: <br>
+    <input type ="text" name="subject_id" required><br><br>
     Year: <br>
     <select name="year" required>
         <option value="">Select Year</option>
