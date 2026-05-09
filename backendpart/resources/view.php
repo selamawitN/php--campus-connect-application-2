@@ -14,7 +14,8 @@ include "db.php";
 <table border="1" cellpadding="10">
 <tr>
     <th>Name</th>
-    <th>ID</th>
+    <th>ID</th> 
+    <th>Subject</th>
     <th>Year</th>
     <th>Type</th>
     <th>File</th>
@@ -28,6 +29,7 @@ while ($row = $result->fetch_assoc()) {
     echo "<td>".$row['student_name']."</td>";
     echo "<td>".$row['student_id']."</td>";
     echo "<td>".$row['year_level']."</td>";
+    echo "<td>".$row['subject_name']."</td>";
     echo "<td>".$row['material_type']."</td>";
     echo "<td><a href='uploads/".$row['file_name']."' download>Download</a></td>";
     echo "</tr>";
