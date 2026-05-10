@@ -6,3 +6,4 @@ $result = $conn->query("SELECT file_path, file_name FROM materials WHERE id = $i
 $file = $result->fetch_assoc();
 //continue from here 
 if ($file && file_exists($file['file_path'])) {
+//stopped here
