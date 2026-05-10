@@ -10,3 +10,4 @@ if ($file && file_exists($file['file_path'])) {
 //ask tsi if this clearly works 
 //i am actually so scared of the finals 
 // am i a fast writer or not I am actually so confused
+//typing 100 words per minute is what makes u a fast writer or nott
