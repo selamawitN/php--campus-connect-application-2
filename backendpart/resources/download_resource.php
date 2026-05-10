@@ -13,3 +13,5 @@ if ($file && file_exists($file['file_path'])) {
 //typing 100 words per minute is what makes u a fast writer or nott
 // and i will see if i can do that or not
 // i am actually so proud of myself for writing tis fast yayyyy
+  //yay finally done for today i will be seeing u guys tomorrow tommorow and yay i am somglad that i met u guys and i love my friendds so freaking much i can hire u guys in the fur
+  
