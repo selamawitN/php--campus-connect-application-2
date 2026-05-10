@@ -9,3 +9,4 @@ if ($file && file_exists($file['file_path'])) {
 //stopped here
 //ask tsi if this clearly works 
 //i am actually so scared of the finals 
+// am i a fast writer or not I am actually so confused
