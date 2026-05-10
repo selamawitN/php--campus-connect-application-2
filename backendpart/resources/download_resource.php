@@ -5,3 +5,4 @@ $conn->query("UPDATE materials SET downloads_count = downloads_count + 1 WHERE i
 $result = $conn->query("SELECT file_path, file_name FROM materials WHERE id = $id");
 $file = $result->fetch_assoc();
 //continue from here 
+if ($file && file_exists($file['file_path'])) {
