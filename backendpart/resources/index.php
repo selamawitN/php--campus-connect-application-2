@@ -1,3 +1,4 @@
+make sure everything is right on monday if everyone commited or not and ask tsi if everything is right or not
 <!DOCTYPE html>
 <html>
 <head>
@@ -46,3 +47,4 @@ subject ID: <br>
 
 </body>
 </html>
+
