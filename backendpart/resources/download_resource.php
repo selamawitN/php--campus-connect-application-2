@@ -8,3 +8,4 @@ $file = $result->fetch_assoc();
 if ($file && file_exists($file['file_path'])) {
 //stopped here
 //ask tsi if this clearly works 
+//i am actually so scared of the finals 
