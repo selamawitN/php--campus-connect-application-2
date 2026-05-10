@@ -42,3 +42,4 @@ if (move_uploaded_file($file['tmp_name'], $file_path)) {
 }
 $conn->close();
 ?>
+//here everything is done make sure everything is right on tsi's pc
