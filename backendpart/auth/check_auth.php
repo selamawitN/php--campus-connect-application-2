@@ -34,8 +34,8 @@ if (isset($_COOKIE['remember_token'])) {
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_student_id'] = $user['student_id'];
-            $_SESSTION['user_department] = $user['department'];
-            $_SESSTION['user_year'] = $user['year']
+            $_SESSION['user_department']  = $user['department'];
+            $_SESSION['user_year']        = $user['year'];
             echo json_encode([
                 'authenticated' => true,
                 'user' => $user
