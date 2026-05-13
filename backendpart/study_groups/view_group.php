@@ -31,4 +31,3 @@ $result = $conn->query("
 <?php else: ?>
     <p>No groups available yet.</p>
 <?php endif; ?>
-
