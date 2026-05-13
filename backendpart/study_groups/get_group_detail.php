@@ -1,40 +1,41 @@
 <?php
-session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 include("../config/db.php");
 
-$sql = "SELECT g.*, 
-        COUNT(gm.id) as member_count,
-        u.fullname as organizer_name
-        FROM `groups` g
-        LEFT JOIN group_members gm ON g.id = gm.group_id
-        LEFT JOIN users u ON g.created_by = u.id
-        GROUP BY g.id
-        ORDER BY g.created_at DESC";
+$group_id = $_GET['id'] ?? 0;
 
-$result = $conn->query($sql);
+if (empty($group_id)) {
+    echo json_encode(['status' => 'error', 'message' => 'Group ID required']);
+    exit;
+}
 
-$groups = [];
+$sql = "SELECT g.group_id as id, g.group_name, g.subject, g.description, g.year, 
+        g.days, g.start_time, g.end_time, g.max_members, g.organizer,
+        COUNT(gm.user_name) as member_count
+        FROM groups g
+        LEFT JOIN group_members gm ON g.group_id = gm.group_id
+        WHERE g.group_id = ?
+        GROUP BY g.group_id";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $group_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
 if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $groups[] = [
-            'id' => $row['id'],
-            'group_name' => $row['name'],
-            'subject' => $row['course_name'],
-            'description' => $row['description'] ?? '',
-            'year' => $row['year'],
-            'days' => $row['days'] ?? '[]',
-            'start_time' => $row['start_time'] ?? 'TBD',
-            'end_time' => $row['end_time'] ?? 'TBD',
-            'member_count' => $row['member_count'] ?? 1,
-            'max_members' => $row['max_members'] ?? 20,
-            'organizer' => $row['organizer_name'] ?? $row['organizer'] ?? 'Admin'
-        ];
-    }
-    echo json_encode(['status' => 'success', 'data' => $groups, 'count' => count($groups)]);
+    $group = $result->fetch_assoc();
+    echo json_encode(['status' => 'success', 'data' => $group]);
 } else {
-    echo json_encode(['status' => 'success', 'data' => [], 'count' => 0]);
+    echo json_encode(['status' => 'error', 'message' => 'Group not found']);
 }
 
 $conn->close();
